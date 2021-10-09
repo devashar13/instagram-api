@@ -123,3 +123,32 @@ func (ph *PostHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func CreatePost(post models.Post){
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Fatal(err)
+	}
+	quickstartDatabase := client.Database("instagramapi")
+	postCollection := quickstartDatabase.Collection("posts")
+	userCollection := quickstartDatabase.Collection("users")
+	var user bson.M
+	if err = userCollection.FindOne(ctx, bson.M{"_id": post.User}).Decode(&user); err != nil {
+		log.Fatal(err)
+	}
+	if user != nil{
+		post.CreatedDate = time.Now()
+		resultInsertionNumber, insertErr := postCollection.InsertOne(ctx, post)
+		fmt.Println(resultInsertionNumber,insertErr)
+	}
+}
