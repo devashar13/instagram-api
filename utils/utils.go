@@ -61,8 +61,14 @@ func CreatePost(post models.Post){
 
 func IdFromUrl(r *http.Request) (string, error) {
 	parts := strings.Split(r.URL.String(), "/")
-	fmt.Println("hello",parts)
+	// fmt.Println("hello",parts)
 	if len(parts) > 3{
+
+		if strings.Contains(parts[3], "?"){
+			id := strings.Split(parts[3], "?")
+			fmt.Println("hi",id[0])
+			return id[0], nil
+		}
 		id := parts[3]
 		return id, nil
 	}

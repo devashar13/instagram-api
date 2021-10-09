@@ -24,9 +24,9 @@ type UserHandler struct {
 func (uh *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		uh.get(w, r)
+		uh.GetUsers(w, r)
 	case "POST":
-		uh.post(w, r)
+		uh.PostUsers(w, r)
 	case "PUT", "PATCH":
 	case "DELETE":
 	default:
@@ -37,7 +37,7 @@ func (uh *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // User Controls
 
-func (ph *UserHandler) get(w http.ResponseWriter, r *http.Request) {
+func (ph *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	defer ph.Unlock()
 	ph.Lock()
 	id, err := utils.IdFromUrl(r)
@@ -61,7 +61,7 @@ func (ph *UserHandler) get(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (ph *UserHandler) post(w http.ResponseWriter, r *http.Request) {
+func (ph *UserHandler) PostUsers(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("hi")
 	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)

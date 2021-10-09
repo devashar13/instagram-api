@@ -11,8 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"net/http"
 	"strings"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -69,6 +71,12 @@ func (ph *PostHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 	}
 	if strings.Contains(r.URL.String(), "users") {
+		query := r.URL.Query()
+		filters := query["limit"] 
+		fmt.Println(filters)
+		if len(filters) == 0 {
+			fmt.Println("filters not present")
+    }
 		objectID, _ := primitive.ObjectIDFromHex(id)
 		client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
@@ -79,7 +87,11 @@ func (ph *PostHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		defer client.Disconnect(ctx)
 		quickstartDatabase := client.Database("instagramapi")
 		postCollection := quickstartDatabase.Collection("posts")
-		cursor, err := postCollection.Find(ctx, bson.M{"user": objectID})
+		findOptions := options.Find()
+		limit,_ := strconv.ParseInt(filters[0],10,64)
+		findOptions.SetLimit(limit)
+		cursor, err := postCollection.Find(ctx, bson.M{"user": objectID},findOptions)
+
 		if err != nil {
 			log.Fatal(err)
 		}
