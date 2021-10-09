@@ -57,9 +57,9 @@ func (uh *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		uh.post(w, r)
 	case "PUT", "PATCH":
-		uh.put(w, r)
+		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	case "DELETE":
-		uh.delete(w, r)
+		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	default:
 		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	}
@@ -73,9 +73,9 @@ func (ph *postHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		ph.post(w, r)
 	case "PUT", "PATCH":
-		// ph.put(w, r)
+		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	case "DELETE":
-		// ph.delete(w, r)
+		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	default:
 		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	}
@@ -103,6 +103,8 @@ func (ph *postHandler) post(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	respondWithJSON(w, http.StatusCreated, post)
+
 
 
 }
@@ -119,7 +121,7 @@ func (ph *postHandler) get(w http.ResponseWriter, r *http.Request) {
 			ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 			err = client.Connect(ctx)
 			if err != nil {
-				log.Fatal(err)
+				respondWithError(w, http.StatusBadRequest, err.Error())
 			}
 			defer client.Disconnect(ctx)
 			quickstartDatabase := client.Database("instagramapi")
@@ -130,9 +132,10 @@ func (ph *postHandler) get(w http.ResponseWriter, r *http.Request) {
 			}
 			var posts []bson.M
 			if err = cursor.All(ctx, &posts); err != nil {
-				log.Fatal(err)
+				respondWithError(w, http.StatusInternalServerError, err.Error())
 			}
-			fmt.Println(posts)
+			respondWithJSON(w, http.StatusCreated, posts)
+
 		// hi
 	}else{
 		
@@ -141,7 +144,7 @@ func (ph *postHandler) get(w http.ResponseWriter, r *http.Request) {
 		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 		err = client.Connect(ctx)
 		if err != nil {
-			log.Fatal(err)
+			respondWithError(w, http.StatusInternalServerError, err.Error())
 		}
 		defer client.Disconnect(ctx)
 		quickstartDatabase := client.Database("instagramapi")
@@ -150,7 +153,7 @@ func (ph *postHandler) get(w http.ResponseWriter, r *http.Request) {
 		if err = postCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&post); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(post)
+		respondWithJSON(w, http.StatusCreated, post)
 
 	}
 	
@@ -214,6 +217,7 @@ func (ph *userHandler) get(w http.ResponseWriter, r *http.Request) {
 	if err = userCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&user); err != nil {
 		log.Fatal(err)
 	}
+	respondWithJSON(w,http.StatusOK,user)
 
 }
 
@@ -240,19 +244,9 @@ func (ph *userHandler) post(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	respondWithJSON(w, http.StatusCreated, user)
 
 
-    // var user User  = json.NewDecoder(r.Body).Decode(&user)  
-    // collection := client.Database("GODB").Collection("user") 
-    // ctx,_ := context.WithTimeout(context.Background(),      
-    //          10*time.Second) 
-    // result,err := collection.InsertOne(ctx,user)
-    // if err!=nil{     
-    //     w.WriteHeader(http.StatusInternalServerError)    
-    //     w.Write([]byte(`{"message":"`+err.Error()+`"}`))    
-    //     return
-    // }    
-    // json.NewEncoder(w).Encode(result)
 
 
 }
