@@ -7,10 +7,10 @@ import (
 
 	"time"
     "net/http"
-
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-
+	"encoding/hex"
 	"strings"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,11 +49,11 @@ func CreatePost(post models.Post){
 	}
 }
 
-// func getHash(pwd string){        
-//     h := sha256.New()
-// 	io.WriteString(h, pwd)
+func GetHash(pwd string) string{        
+	sha256Bytes := sha256.Sum256([]byte(pwd))
+	return hex.EncodeToString(sha256Bytes[:])
 
-// }
+}
 
 
 

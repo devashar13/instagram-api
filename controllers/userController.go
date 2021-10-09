@@ -77,7 +77,7 @@ func (ph *UserHandler) PostUsers(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	user.ID = primitive.NewObjectID()
 	err = json.Unmarshal(body, &user)
-	// getHash(user.Password)
+	user.Password = utils.GetHash(user.Password)
 	utils.CreateUser(user)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
