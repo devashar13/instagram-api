@@ -16,12 +16,12 @@ import (
 	"strings"
 	"sync"
 	"go.mongodb.org/mongo-driver/bson"
-	"crypto/sha256"
 	"io/ioutil"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"github.com/devashar13/instagram-api/models"
 
 )
 
@@ -31,23 +31,6 @@ type userHandler struct {
 type postHandler struct {
 	sync.Mutex
 }
-
-type User struct {
-    ID            primitive.ObjectID `bson:"_id,omitempty"`
-    Name string `json:"name" bson:"name"` 
-    Email string `json:"email" bson:"email"` 
-    Password string `json:"password" bson:"password"`
-}
-
-type Post struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	User     primitive.ObjectID `bson:"user"`
-	Caption       string             `json:"caption" bson:"caption"`
-	Imageurl string            `json:"imageurl" bson:"imageurl"`
-	CreatedDate time.Time   `json:"time" bson:"time"`
-}
-
-
 
 
 func (uh *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -163,34 +146,7 @@ func (ph *postHandler) get(w http.ResponseWriter, r *http.Request) {
 
 
 
-func createPost(post Post){
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Disconnect(ctx)
-	err = client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		log.Fatal(err)
-	}
-	quickstartDatabase := client.Database("instagramapi")
-	postCollection := quickstartDatabase.Collection("posts")
-	userCollection := quickstartDatabase.Collection("users")
-	var user bson.M
-	if err = userCollection.FindOne(ctx, bson.M{"_id": post.User}).Decode(&user); err != nil {
-		log.Fatal(err)
-	}
-	if user != nil{
-		post.CreatedDate = time.Now()
-		resultInsertionNumber, insertErr := postCollection.InsertOne(ctx, post)
-		fmt.Println(resultInsertionNumber,insertErr)
-	}
-}
+
 
 
 
@@ -252,46 +208,12 @@ func (ph *userHandler) post(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func getHash(pwd string){        
-    h := sha256.New()
-	io.WriteString(h, pwd)
-
-}
-
-func (ph *userHandler) put(w http.ResponseWriter, r *http.Request) {
-	
-
-}
-
-func (ph *userHandler) delete(w http.ResponseWriter, r *http.Request) {
-	
-
-}
-
-func respondWithError(w http.ResponseWriter, code int, msg string) {
-	respondWithJSON(w, code, map[string]string{"error": msg})
-}
-
-func respondWithJSON(w http.ResponseWriter, code int, data interface{}) {
-	response, _ := json.Marshal(data)
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-}
 
 
 
 
-func idFromUrl(r *http.Request) (string, error) {
-	parts := strings.Split(r.URL.String(), "/")
-	fmt.Println("hello",parts)
-	if len(parts) > 3{
-		id := parts[3]
-		return id, nil
-	}
-	id := parts[2]
-	return id, nil
-}
+
+
 func newUserHandler() *userHandler {
 	return &userHandler{}
 
@@ -304,27 +226,7 @@ func newPostHandler() *postHandler {
 
 
 
-func createUser(user User){
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Disconnect(ctx)
-	err = client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		log.Fatal(err)
-	}
-	quickstartDatabase := client.Database("instagramapi")
-	userCollection := quickstartDatabase.Collection("users")
-	resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
-	fmt.Println(resultInsertionNumber,insertErr)
 
-}
 
 
 func main(){
