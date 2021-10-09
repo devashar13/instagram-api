@@ -24,7 +24,7 @@ This is an example of how to list things you need to use the software and how to
  
 1. Clone the Repo
 ```sh
-go get github.com/devashar13/instagram-api
+go get -u github.com/devashar13/instagram-api
 ```
 
 ## Routes
