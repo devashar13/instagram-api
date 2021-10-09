@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -77,8 +78,7 @@ func (ph *UserHandler) PostUsers(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	user.ID = primitive.NewObjectID()
 	err = json.Unmarshal(body, &user)
-	user.Password = utils.GetHash(user.Password)
-	utils.CreateUser(user)
+	CreateUser(user)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -102,6 +102,7 @@ func CreateUser(user models.User){
 	if err != nil {
 		log.Fatal(err)
 	}
+	user.Password = utils.GetHash(user.Password)
 	quickstartDatabase := client.Database("instagramapi")
 	userCollection := quickstartDatabase.Collection("users")
 	resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)

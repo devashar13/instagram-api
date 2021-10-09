@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -54,7 +56,7 @@ func (ph *PostHandler) HandlePost(w http.ResponseWriter, r *http.Request) {
 	post.ID = primitive.NewObjectID()
 	err = json.Unmarshal(body, &post)
 	// getHash(user.Password)
-	utils.CreatePost(post)
+	CreatePost(post)
 
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
