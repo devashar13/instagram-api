@@ -13,9 +13,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"go.mongodb.org/mongo-driver/bson"
 
+	"io/ioutil"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
@@ -24,6 +25,14 @@ import (
 type userHandler struct {
 	sync.Mutex
 }
+
+type User struct {
+    ID            primitive.ObjectID `bson:"_id,omitempty"`
+    Name string `json:"name" bson:"name"` 
+    Email string `json:"email" bson:"email"` 
+    Password string `json:"password" bson:"password"`
+}
+
 
 func (ph *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -47,9 +56,51 @@ func (ph *userHandler) get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ph *userHandler) post(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type","application/json")   
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ct := r.Header.Get("content-type")
+	if ct != "application/json" {
+		respondWithError(w, http.StatusUnsupportedMediaType, "content type 'application/json' required")
+		return
+	}
+	var user User
+	user.ID = primitive.NewObjectID()
+	err = json.Unmarshal(body, &user)
+	createUser(user)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+
+    // var user User  = json.NewDecoder(r.Body).Decode(&user)  
+    // user.Password = getHash([]byte(user.Password)) 
+    // collection := client.Database("GODB").Collection("user") 
+    // ctx,_ := context.WithTimeout(context.Background(),      
+    //          10*time.Second) 
+    // result,err := collection.InsertOne(ctx,user)
+    // if err!=nil{     
+    //     w.WriteHeader(http.StatusInternalServerError)    
+    //     w.Write([]byte(`{"message":"`+err.Error()+`"}`))    
+    //     return
+    // }    
+    // json.NewEncoder(w).Encode(result)
 
 
 }
+
+
+// func getHash(pwd []byte) string {        
+//     hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)          
+//     if err != nil {
+//        log.Println(err)
+//     }
+//     return string(hash)
+// }
 
 func (ph *userHandler) put(w http.ResponseWriter, r *http.Request) {
 	
@@ -92,8 +143,8 @@ func newProductHandler() *userHandler {
 
 }
 
-
-func main(){
+func createUser(user User){
+	fmt.Println(user)
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
@@ -110,16 +161,21 @@ func main(){
 	}
 	quickstartDatabase := client.Database("instagramapi")
 	userCollection := quickstartDatabase.Collection("users")
-	podcastResult, err := userCollection.InsertOne(ctx, bson.D{
-		
-	})
-	fmt.Println(podcastResult)
+	resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
+	fmt.Println(resultInsertionNumber,insertErr)
+}
+
+
+func main(){
+	
+
 	ph := newProductHandler()
 	port := ":5000"
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello World")
 	})
 	http.Handle("/products", ph)
+	http.Handle("/user", ph)
 	fmt.Println("Starting server on port", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 
