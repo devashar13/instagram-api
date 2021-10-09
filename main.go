@@ -5,7 +5,6 @@ package main
 import (
 	"log"
 	"context"
-	"io"
 
 	"time"
     "net/http"
@@ -20,8 +19,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"github.com/devashar13/instagram-api/models"
+
 
 )
 
@@ -40,11 +39,8 @@ func (uh *userHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		uh.post(w, r)
 	case "PUT", "PATCH":
-		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	case "DELETE":
-		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	default:
-		respondWithError(w, http.StatusMethodNotAllowed, "invalid method")
 	}
 }
 
@@ -77,11 +73,10 @@ func (ph *postHandler) post(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnsupportedMediaType, "content type 'application/json' required")
 		return
 	}
-	var post Post
+	var post models.Post
 	post.ID = primitive.NewObjectID()
 	err = json.Unmarshal(body, &post)
     // getHash(user.Password)
-	createPost(post)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return

@@ -4,7 +4,7 @@ package utils
 import (
 	"log"
 	"context"
-	
+
 	"time"
     "net/http"
 	"encoding/json"
@@ -15,11 +15,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/devashar13/instagram-api/models"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 )
 
-func createPost(post Post){
+func createPost(post models.Post){
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
@@ -79,7 +80,7 @@ func idFromUrl(r *http.Request) (string, error) {
 	return id, nil
 }
 
-func createUser(user User){
+func createUser(user models.User){
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
