@@ -4,6 +4,8 @@ package main
 
 import (
 	"log"
+	"context"
+	"time"
     "net/http"
 	"encoding/json"
 	"errors"
@@ -11,6 +13,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"go.mongodb.org/mongo-driver/bson"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 )
 
@@ -87,6 +94,26 @@ func newProductHandler() *userHandler {
 
 
 func main(){
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Fatal(err)
+	}
+	quickstartDatabase := client.Database("instagramapi")
+	userCollection := quickstartDatabase.Collection("users")
+	podcastResult, err := userCollection.InsertOne(ctx, bson.D{
+		
+	})
+	fmt.Println(podcastResult)
 	ph := newProductHandler()
 	port := ":5000"
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
