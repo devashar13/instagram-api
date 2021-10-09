@@ -7,8 +7,8 @@ import (
 
 	"time"
     "net/http"
-	"encoding/json"
 
+	"encoding/json"
 	"fmt"
 
 	"strings"
@@ -20,7 +20,7 @@ import (
 
 )
 
-func createPost(post models.Post){
+func CreatePost(post models.Post){
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
@@ -55,21 +55,11 @@ func createPost(post models.Post){
 
 // }
 
-func respondWithError(w http.ResponseWriter, code int, msg string) {
-	respondWithJSON(w, code, map[string]string{"error": msg})
-}
-
-func respondWithJSON(w http.ResponseWriter, code int, data interface{}) {
-	response, _ := json.Marshal(data)
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-}
 
 
 
 
-func idFromUrl(r *http.Request) (string, error) {
+func IdFromUrl(r *http.Request) (string, error) {
 	parts := strings.Split(r.URL.String(), "/")
 	fmt.Println("hello",parts)
 	if len(parts) > 3{
@@ -80,7 +70,7 @@ func idFromUrl(r *http.Request) (string, error) {
 	return id, nil
 }
 
-func createUser(user models.User){
+func CreateUser(user models.User){
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
@@ -101,3 +91,15 @@ func createUser(user models.User){
 	fmt.Println(resultInsertionNumber,insertErr)
 
 }
+func RespondWithError(w http.ResponseWriter, code int, msg string) {
+	RespondWithJSON(w, code, map[string]string{"error": msg})
+}
+
+func RespondWithJSON(w http.ResponseWriter, code int, data interface{}) {
+	response, _ := json.Marshal(data)
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
+
